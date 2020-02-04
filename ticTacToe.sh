@@ -10,7 +10,7 @@ function initializeBoard () {
 	do
 		for((j=0;j<$columns;j++))
 		do
-			board[$i,$j]='-'
+			board[$i,$j]=" "
 		done
 	done
 }
@@ -31,6 +31,19 @@ function tossForFirstTurn () {
 		echo "Player will play second"
 	fi
 }
+function displayBoard () {
+	echo "----||---||----"
+	for((i=0;i<rows;i++))
+	do
+		for((j=0;j<columns;j++))
+		do
+			echo -n "| ${board[i,j]} |"
+		done
+		echo
+		echo "----||---||----"
+	done
+}
 initializeBoard
 assignLetter
 tossForFirstTurn
+displayBoard
