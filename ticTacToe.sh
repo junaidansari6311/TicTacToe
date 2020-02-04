@@ -23,5 +23,14 @@ function assignLetter () {
 	fi
 	echo "player = $player"
 }
+function tossForFirstTurn () {
+	if [ $((RANDOM%2)) -eq 1 ]
+	then
+		echo "Player will play first"
+	else
+		echo "Player will play second"
+	fi
+}
 initializeBoard
 assignLetter
+tossForFirstTurn
