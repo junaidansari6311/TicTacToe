@@ -1,16 +1,15 @@
-#!/bin/bash 
+#!/bin/bash
 echo "WELCOME TO TIC TAC TOE"
-declare -a board
+declare -A board
 #variable
-rows=3
-columns=3
 player=O
+count=0
 function initializeBoard () {
-	for((i=0;i<$rows;i++))
+	for((rows=0;rows<3;rows++))
 	do
-		for((j=0;j<$columns;j++))
+		for((columns=0;columns<3;columns++))
 		do
-			board[$i,$j]=" "
+			board[$rows,$columns]="-"
 		done
 	done
 }
@@ -33,17 +32,44 @@ function tossForFirstTurn () {
 }
 function displayBoard () {
 	echo "----||---||----"
-	for((i=0;i<rows;i++))
+	for((rows=0;rows<3;rows++))
 	do
-		for((j=0;j<columns;j++))
+		for((columns=0;columns<3;columns++))
 		do
-			echo -n "| ${board[i,j]} |"
+			echo -n "| ${board[$rows,$columns]} |"
 		done
 		echo
 		echo "----||---||----"
+	done
+}
+function populateBoard () {
+	read -p "Enter the row between (0,1,2) : " row
+	read -p "Enter the column between (0,1,2) : " column
+	isCellEmpty $row $column
+}
+function isCellEmpty () {
+	if [[ $1 -lt 3 && $1 -ge 0 ]] && [[ $2 -lt 3 && $2 -ge 0 ]]
+	then
+		if [[ ${board[$1,$2]} == "-" ]]
+		then
+			board[$1,$2]=$player
+			((count++))
+		else
+			echo "Cell is not empty"
+		fi
+	else
+		echo "Invalid $1 or $2"
+	fi
+}
+function startGame () {
+	while [ $count -lt 9 ]
+	do
+		populateBoard
+		displayBoard
 	done
 }
 initializeBoard
 assignLetter
 tossForFirstTurn
 displayBoard
+startGame
