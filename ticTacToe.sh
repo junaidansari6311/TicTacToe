@@ -53,6 +53,7 @@ function isCellEmpty () {
 		if [[ ${board[$1,$2]} == "-" ]]
 		then
 			board[$1,$2]=$player
+			checkWinner $player
 			((count++))
 		else
 			echo "Cell is not empty"
@@ -61,15 +62,49 @@ function isCellEmpty () {
 		echo "Invalid $1 or $2"
 	fi
 }
+function checkWinner () {
+	displayBoard
+	CountOfDiagonal=0
+	CountOfAntiDiagonal=0
+	for((rows=0;rows<3;rows++))
+   do
+		CountOfRow=0
+		CountOfColumn=0
+		for((columns=0;columns<3;columns++))
+		do
+			if [[ ${board[$rows,$columns]} == $1 ]]
+			then
+				((CountOfRow++))
+			fi
+			if [[ ${board[$columns,$rows]} == $1 ]]
+			then
+				((CountOfColumn++))
+			fi
+			if [[ $rows == $columns && ${board[$rows,$columns]} == $1 ]]
+			then
+				((CountOfDiagonal++))
+			fi
+			if [[ $(( rows+columns )) -eq 2 && ${board[$rows,$columns]} == $1 ]]
+			then
+				((CountOfAntiDiagonal++))
+			fi
+			if [[ $CountOfRow -eq 3 || $CountOfColumn -eq 3 || $CountOfDiagonal -eq 3 || $CountOfAntiDiagonal -eq 3 ]]
+			then
+				echo "$1 is a winner"
+				exit
+			fi
+
+      done
+   done
+}
 function startGame () {
+	displayBoard
 	while [ $count -lt 9 ]
 	do
 		populateBoard
-		displayBoard
 	done
 }
 initializeBoard
 assignLetter
 tossForFirstTurn
-displayBoard
 startGame
