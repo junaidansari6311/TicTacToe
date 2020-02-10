@@ -11,6 +11,7 @@ computer=O
 count=0
 flag=0
 tieFlag=0
+winnerFlag=0
 function initializeBoard () {
 	for((rows=0;rows<$NO_OF_ROWS;rows++))
 	do
@@ -24,15 +25,14 @@ function assignLetter () {
 	if [ $((RANDOM%2)) -eq 0 ]
 	then
 		player=X
-		echo "Player will play first : $player"
 		flag=1
 	else
 		computer=X
-		echo "Computer will play first : $computer"
 		flag=0
 	fi
 }
 function displayBoard () {
+	echo "Player = $player  Computer = $computer"
 	echo "----||---||----"
 	for((rows=0;rows<$NO_OF_ROWS;rows++))
 	do
@@ -48,15 +48,21 @@ function displayBoard () {
 function populateBoard () {
 	board[$1,$2]=$3
 	((count++))
+	clear
 	displayBoard
 	checkWinner $3
+	if [[ $winnerFlag -eq 1 ]]
+	then
+		echo "$3 Won!!!"
+		exit
+	fi
 }
 function isCellEmpty () {
 	if [[ $1 -lt $NO_OF_ROWS && $1 -ge 0 ]] && [[ $2 -lt $NO_OF_COLUMNS && $2 -ge 0 ]]
 	then
 		if [[ ${board[$1,$2]} == "-" ]]
 		then
-			populateBoard $row $column $switchPlayerTurn
+			populateBoard $row $column $switchPlayerLetter
 		else
 			echo "Cell is not empty"
 			switchTurns
@@ -93,9 +99,8 @@ function checkWinner () {
 			fi
 			if [[ $CountOfRow -eq $NO_OF_COLUMNS || $CountOfColumn -eq $NO_OF_COLUMNS || $CountOfDiagonal -eq $NO_OF_COLUMNS || $CountOfAntiDiagonal -eq $NO_OF_COLUMNS ]]
 			then
-				echo "$1 won!!!"
+				winnerFlag=1
 				tieFlag=1
-				exit
 			fi
 		done
 	done
@@ -106,21 +111,42 @@ function checkTie () {
 		echo "It's a tie!!!"
 	fi
 }
+function computerMoveForWinning () {
+	for ((rowCount=0;rowCount<$NO_OF_ROWS;rowCount++))
+	do
+		for ((columnCount=0;columnCount<$NO_OF_COLUMNS;columnCount++))
+		do
+			if [[ ${board[$rowCount,$columnCount]} == "-" ]]
+			then
+				board[$rowCount,$columnCount]=$computer
+				checkWinner $computer
+				if [[ winnerFlag -eq 1 ]]
+				then
+					populateBoard $rowCount $columnCount $computer
+					exit
+				else
+					board[$rowCount,$columnCount]="-"
+				fi
+			fi
+		done
+	done
+}
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
 	then
 		echo "Player's turn!!!"
 		read -p "Enter the row between (0,1,2) : " row
 		read -p "Enter the column betwwn (0,1,2) : " column
-		switchPlayerTurn=$player
-		isCellEmpty $row $column $switchPlayerTurn
+		switchPlayerLetter=$player
+		isCellEmpty $row $column $switchPlayerLetter
 		flag=0
 	else
 		echo "Computer's turn!!!"
+		computerMoveForWinning
 		row=$((RANDOM%$NO_OF_ROWS))
 		column=$((RANDOM%$NO_OF_COLUMNS))
-		switchPlayerTurn=$computer
-		isCellEmpty $row $column $switchPlayerTurn
+		switchPlayerLetter=$computer
+		isCellEmpty $row $column $switchPlayerLetter
 		flag=1
 	fi
 }
