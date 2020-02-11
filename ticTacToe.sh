@@ -10,8 +10,8 @@ player=O
 computer=O
 count=0
 flag=0
-tieFlag=0
 winnerFlag=0
+blockedFlag=0
 function initializeBoard () {
 	for((rows=0;rows<$NO_OF_ROWS;rows++))
 	do
@@ -51,11 +51,7 @@ function populateBoard () {
 	clear
 	displayBoard
 	checkWinner $3
-	if [[ $winnerFlag -eq 1 ]]
-	then
-		echo "$3 Won!!!"
-		exit
-	fi
+	showWinner $3
 }
 function isCellEmpty () {
 	if [[ $1 -lt $NO_OF_ROWS && $1 -ge 0 ]] && [[ $2 -lt $NO_OF_COLUMNS && $2 -ge 0 ]]
@@ -70,6 +66,13 @@ function isCellEmpty () {
 	else
 		echo "Invalid $1 or $2"
 		switchTurns
+	fi
+}
+function showWinner () {
+	if [[ $winnerFlag -eq 1 ]]
+	then
+		echo "$1 Won!!!"
+		exit
 	fi
 }
 function checkWinner () {
@@ -100,13 +103,12 @@ function checkWinner () {
 			if [[ $CountOfRow -eq $NO_OF_COLUMNS || $CountOfColumn -eq $NO_OF_COLUMNS || $CountOfDiagonal -eq $NO_OF_COLUMNS || $CountOfAntiDiagonal -eq $NO_OF_COLUMNS ]]
 			then
 				winnerFlag=1
-				tieFlag=1
 			fi
 		done
 	done
 }
 function checkTie () {
-	if [[ $tieFlag -eq 0 ]]
+	if [[ $count -eq $TOTAL_COUNT ]]
 	then
 		echo "It's a tie!!!"
 	fi
@@ -118,12 +120,13 @@ function computerMoveForWinning () {
 		do
 			if [[ ${board[$rowCount,$columnCount]} == "-" ]]
 			then
-				board[$rowCount,$columnCount]=$computer
-				checkWinner $computer
-				if [[ winnerFlag -eq 1 ]]
+				board[$rowCount,$columnCount]=$1
+				checkWinner $1
+				if [[ $winnerFlag -eq 1 ]]
 				then
-					populateBoard $rowCount $columnCount $computer
-					exit
+					winnerFlag=0
+					populateBoard $rowCount $columnCount $1
+					break
 				else
 					board[$rowCount,$columnCount]="-"
 				fi
@@ -131,22 +134,63 @@ function computerMoveForWinning () {
 		done
 	done
 }
+function computerBlocksOpponent () {
+	blockedFlag=0
+	for((rowsCount=0;rowsCount<$NO_OF_ROWS;rowsCount++))
+	do
+		for((columnsCount=0;columnsCount<$NO_OF_COLUMNS;columnsCount++))
+		do
+			if [[ ${board[$rowsCount,$columnsCount]} == "-" ]]
+			then
+				board[$rowsCount,$columnsCount]=$1
+				checkWinner $1
+				if [[ $winnerFlag -eq 1 ]]
+				then
+					winnerFlag=0
+					if [[ $blockedFlag -eq 0 ]]
+					then
+						blockedFlag=1
+						populateBoard $rowsCount $columnsCount $2
+						break
+					fi
+				else
+					board[$rowsCount,$columnsCount]="-"
+				fi
+				if [[ $blockedFlag -eq 1 ]]
+				then
+					break
+				fi
+			fi
+		done
+		if [[ $blockedFlag -eq 1 ]]
+		then
+			break
+		fi
+	done
+}
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
 	then
 		echo "Player's turn!!!"
+		switchPlayerLetter=$player
 		read -p "Enter the row between (0,1,2) : " row
 		read -p "Enter the column betwwn (0,1,2) : " column
-		switchPlayerLetter=$player
 		isCellEmpty $row $column $switchPlayerLetter
+		showWinner $player
 		flag=0
 	else
 		echo "Computer's turn!!!"
-		computerMoveForWinning
-		row=$((RANDOM%$NO_OF_ROWS))
-		column=$((RANDOM%$NO_OF_COLUMNS))
 		switchPlayerLetter=$computer
-		isCellEmpty $row $column $switchPlayerLetter
+		computerMoveForWinning $computer
+		computerBlocksOpponent $player $computer
+		if [[ $blockedFlag -ne 1 ]]
+		then
+			row=$((RANDOM%$NO_OF_ROWS))
+			column=$((RANDOM%$NO_OF_COLUMNS))
+			isCellEmpty $row $column $switchPlayerLetter
+		fi
+		showWinner $computer
+		blockedFlag=0
 		flag=1
 	fi
 }
