@@ -169,9 +169,9 @@ function computerBlocksOpponent () {
 	done
 }
 function checkIfCornersAreAvailable () {
-	for((rowsCounter=0;rowsCounter<$NO_OF_ROWS;rowsCounter++))
+	for((rowsCounter=0;rowsCounter<$NO_OF_ROWS;rowsCounter=$rowsCounter+2))
 	do
-		for((columnsCounter=0;columnsCounter<$NO_OF_COLUMNS;columnsCounter++))
+		for((columnsCounter=0;columnsCounter<$NO_OF_COLUMNS;columnsCounter=$columnsCounter+2))
 		do
 			if [[ ${board[$rowsCounter,$columnsCounter]} == "-" ]]
 			then
@@ -180,6 +180,12 @@ function checkIfCornersAreAvailable () {
 			fi
 		done
 	done
+	rowsCounter=$(($NO_OF_ROWS/2))
+	columnsCounter=$(($NO_OF_COLUMNS/2))
+	if [[ ${board[$rowsCounter,$columnsCounter]} == "-" ]]
+	then
+		populateBoard $rowsCounter $columnsCounter $1
+	fi
 }
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
@@ -187,7 +193,7 @@ function switchTurns () {
 		echo "Player's turn!!!"
 		switchPlayerLetter=$player
 		read -p "Enter the row between (0,1,2) : " row
-		read -p "Enter the column betwwn (0,1,2) : " column
+		read -p "Enter the column between (0,1,2) : " column
 		isCellEmpty $row $column $switchPlayerLetter
 		showWinner $player
 		flag=0
