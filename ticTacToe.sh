@@ -168,6 +168,19 @@ function computerBlocksOpponent () {
 		fi
 	done
 }
+function checkIfCornersAreAvailable () {
+	for((rowsCounter=0;rowsCounter<$NO_OF_ROWS;rowsCounter++))
+	do
+		for((columnsCounter=0;columnsCounter<$NO_OF_COLUMNS;columnsCounter++))
+		do
+			if [[ ${board[$rowsCounter,$columnsCounter]} == "-" ]]
+			then
+				populateBoard $rowsCounter $columnsCounter $1
+				return
+			fi
+		done
+	done
+}
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
 	then
@@ -185,9 +198,7 @@ function switchTurns () {
 		computerBlocksOpponent $player $computer
 		if [[ $blockedFlag -ne 1 ]]
 		then
-			row=$((RANDOM%$NO_OF_ROWS))
-			column=$((RANDOM%$NO_OF_COLUMNS))
-			isCellEmpty $row $column $switchPlayerLetter
+			checkIfCornersAreAvailable $computer
 		fi
 		showWinner $computer
 		blockedFlag=0
