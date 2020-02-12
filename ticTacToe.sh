@@ -1,5 +1,6 @@
 #!/bin/bash
 echo "WELCOME TO TIC TAC TOE"
+#2D array
 declare -A board
 #constants
 NO_OF_ROWS=3
@@ -58,7 +59,7 @@ function isCellEmpty () {
 	then
 		if [[ ${board[$1,$2]} == "-" ]]
 		then
-			populateBoard $row $column $switchPlayerLetter
+			populateBoard $row $column $player
 		else
 			echo "Cell is not empty"
 			switchTurns
@@ -84,18 +85,22 @@ function checkWinner () {
 		CountOfColumn=0
 		for((columns=0;columns<$NO_OF_COLUMNS;columns++))
 		do
+			#checking winner in rows
 			if [[ ${board[$rows,$columns]} == $1 ]]
 			then
 				((CountOfRow++))
 			fi
+			#checking winner in columns
 			if [[ ${board[$columns,$rows]} == $1 ]]
 			then
 				((CountOfColumn++))
 			fi
+			#checking winner in diagonal
 			if [[ $rows == $columns && ${board[$rows,$columns]} == $1 ]]
 			then
 				((CountOfDiagonal++))
 			fi
+			#checking winner in antidiagonal
 			if [[ $(( rows+columns )) -eq 2 && ${board[$rows,$columns]} == $1 ]]
 			then
 				((CountOfAntiDiagonal++))
@@ -185,21 +190,37 @@ function checkIfCornersAreAvailable () {
 	if [[ ${board[$rowsCounter,$columnsCounter]} == "-" ]]
 	then
 		populateBoard $rowsCounter $columnsCounter $1
+	else
+		checkIfSidesAreAvailable $1
 	fi
+}
+function checkIfSidesAreAvailable () {
+	for((rowCounter;rowCounter<$NO_OF_ROWS;rowCounter++))
+	do
+		for((columnCounter;columnCounter<$NO_OF_COLUMNS;columnCounter++))
+		do
+			if [[ $(($(($rowCounter+$columnCounter))%2)) -eq 1 ]]
+			then
+				if [[ ${board[$rowCounter,$columnCounter]} == "-" ]]
+				then
+					populateBoard $rowCounter $columnCounter $1
+					return
+				fi
+			fi
+		done
+	done
 }
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
 	then
 		echo "Player's turn!!!"
-		switchPlayerLetter=$player
 		read -p "Enter the row between (0,1,2) : " row
 		read -p "Enter the column between (0,1,2) : " column
-		isCellEmpty $row $column $switchPlayerLetter
+		isCellEmpty $row $column $player
 		showWinner $player
 		flag=0
 	else
 		echo "Computer's turn!!!"
-		switchPlayerLetter=$computer
 		computerMoveForWinning $computer
 		computerBlocksOpponent $player $computer
 		if [[ $blockedFlag -ne 1 ]]
