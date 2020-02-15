@@ -1,3 +1,4 @@
+
 #!/bin/bash
 echo "WELCOME TO TIC TAC TOE"
 #2D array
@@ -13,6 +14,7 @@ count=0
 flag=0
 winnerFlag=0
 blockedFlag=0
+
 function initializeBoard () {
 	for((rows=0;rows<$NO_OF_ROWS;rows++))
 	do
@@ -22,6 +24,7 @@ function initializeBoard () {
 		done
 	done
 }
+
 function assignLetter () {
 	if [ $((RANDOM%2)) -eq 0 ]
 	then
@@ -32,6 +35,7 @@ function assignLetter () {
 		flag=0
 	fi
 }
+
 function displayBoard () {
 	echo "Player = $player  Computer = $computer"
 	echo "----||---||----"
@@ -46,6 +50,7 @@ function displayBoard () {
 	done
 	echo "*-------------*--------------*"
 }
+
 function populateBoard () {
 	board[$1,$2]=$3
 	((count++))
@@ -54,12 +59,13 @@ function populateBoard () {
 	checkWinner $3
 	showWinner $3
 }
+
 function isCellEmpty () {
 	if [[ $1 -lt $NO_OF_ROWS && $1 -ge 0 ]] && [[ $2 -lt $NO_OF_COLUMNS && $2 -ge 0 ]]
 	then
 		if [[ ${board[$1,$2]} == "-" ]]
 		then
-			populateBoard $row $column $player
+			populateBoard $1 $2 $3
 		else
 			echo "Cell is not empty"
 			switchTurns
@@ -69,6 +75,7 @@ function isCellEmpty () {
 		switchTurns
 	fi
 }
+
 function showWinner () {
 	if [[ $winnerFlag -eq 1 ]]
 	then
@@ -76,6 +83,7 @@ function showWinner () {
 		exit
 	fi
 }
+
 function checkWinner () {
 	CountOfDiagonal=0
 	CountOfAntiDiagonal=0
@@ -112,12 +120,14 @@ function checkWinner () {
 		done
 	done
 }
+
 function checkTie () {
 	if [[ $count -eq $TOTAL_COUNT ]]
 	then
 		echo "It's a tie!!!"
 	fi
 }
+
 function computerMoveForWinning () {
 	for ((rowCount=0;rowCount<$NO_OF_ROWS;rowCount++))
 	do
@@ -139,6 +149,7 @@ function computerMoveForWinning () {
 		done
 	done
 }
+
 function computerBlocksOpponent () {
 	blockedFlag=0
 	for((rowsCount=0;rowsCount<$NO_OF_ROWS;rowsCount++))
@@ -173,6 +184,7 @@ function computerBlocksOpponent () {
 		fi
 	done
 }
+
 function checkIfCornersAreAvailable () {
 	for((rowsCounter=0;rowsCounter<$NO_OF_ROWS;rowsCounter=$rowsCounter+2))
 	do
@@ -191,15 +203,33 @@ function checkIfCornersAreAvailable () {
 	then
 		populateBoard $rowsCounter $columnsCounter $1
 	else
-		checkIfSidesAreAvailable $1
+		checkIfCenterIsAvailable $1
 	fi
 }
+
+function checkIfCenterIsAvailable () {
+	for((row=0;row<$NO_OF_ROWS;row++))
+	do
+		for((column=0;column<$NO_OF_COLUMN;column++))
+		do
+			row=$(($NO_OF_ROWS/2))
+			column=$(($NO_OF_COLUMNS/2))
+			if [[ ${board[$row,$column]} == "-" ]]
+			then
+				populateBoard $row $column $1
+			else
+				checkIfSidesAreAvailable $1
+			fi
+		done
+	done
+}
+
 function checkIfSidesAreAvailable () {
 	for((rowCounter;rowCounter<$NO_OF_ROWS;rowCounter++))
 	do
 		for((columnCounter;columnCounter<$NO_OF_COLUMNS;columnCounter++))
 		do
-			if [[ $(($(($rowCounter+$columnCounter))%2)) -eq 1 ]]
+			if [[ $(($(($rowCounter + $columnCounter))%2)) -eq 1 ]]
 			then
 				if [[ ${board[$rowCounter,$columnCounter]} == "-" ]]
 				then
@@ -210,34 +240,46 @@ function checkIfSidesAreAvailable () {
 		done
 	done
 }
+
+function playersTurn () {
+	echo "Player's turn!!!"
+	read -p "Enter the row between (0,1,2) : " row
+	read -p "Enter the column between (0,1,2) : " column
+	isCellEmpty $row $column $player
+	showWinner $player
+	flag=0
+}
+
+function computersTurn () {
+	echo "Computer's turn!!!"
+	computerMoveForWinning $computer
+	computerBlocksOpponent $player $computer
+	if [[ $blockedFlag -ne 1 ]]
+	then
+		checkIfCornersAreAvailable $computer
+	fi
+	showWinner $computer
+	blockedFlag=0
+}
+
 function switchTurns () {
 	if [[ $flag -eq 1 ]]
 	then
-		echo "Player's turn!!!"
-		read -p "Enter the row between (0,1,2) : " row
-		read -p "Enter the column between (0,1,2) : " column
-		isCellEmpty $row $column $player
-		showWinner $player
+		playersTurn
 		flag=0
 	else
-		echo "Computer's turn!!!"
-		computerMoveForWinning $computer
-		computerBlocksOpponent $player $computer
-		if [[ $blockedFlag -ne 1 ]]
-		then
-			checkIfCornersAreAvailable $computer
-		fi
-		showWinner $computer
-		blockedFlag=0
+		computersTurn
 		flag=1
 	fi
 }
+
 function startGame () {
 	while [[ $count -lt $TOTAL_COUNT ]]
 	do
 		switchTurns
 	done
 }
+
 initializeBoard
 assignLetter
 displayBoard
